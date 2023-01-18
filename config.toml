@@ -1,0 +1,40 @@
+[general]
+    BorderColor = "#abb31b"
+    ActiveButtonColor = "#b42300"
+    ButtonColor = "#f333e4"
+
+[[metrics]]
+    name = "Got up"
+    color1 = "#354565"
+    color2 = "#445567"
+    rule = "time"
+
+[[metrics]]
+   name = "Went to bed"
+   color1 = "#354565"
+   color2 = "#445567"
+   rule = "time"
+
+[[metrics]]
+    name = "Mood"
+    color1 = "#282828"
+    color2 = "#395949"
+    rule = "int10"
+
+[[metrics]]
+    name = "Pomos"
+    color1 = "#282828"
+    color2 = "#395949"
+    rule = "int"
+
+[[metrics]]
+    name = "Drank water"
+    color1 = "#282828"
+    color2 = "#395949"
+    rule = "int"
+
+# [[metrics]]
+#     name = "testlol"
+#     color1 = "#282828"
+#     color2 = "#395949"
+#     rule = "int"
