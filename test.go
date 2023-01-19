@@ -102,18 +102,6 @@ var (
 		BottomRight: "┴",
 	}
 
-	tab = lipgloss.NewStyle().
-		Border(tabBorder, true).
-		BorderForeground(highlight).
-		Padding(0, 1)
-
-	activeTab = tab.Copy().Border(activeTabBorder, true)
-
-	tabGap = tab.Copy().
-		BorderTop(false).
-		BorderLeft(false).
-		BorderRight(false)
-
 	// Title.
 
 	titleStyle = lipgloss.NewStyle().
@@ -132,27 +120,6 @@ var (
 			BorderForeground(subtle)
 
 	// Dialog.
-
-	dialogBoxStyle = lipgloss.NewStyle().
-			Border(lipgloss.RoundedBorder()).
-			BorderForeground(lipgloss.Color("#874BFD")).
-			Padding(1, 0).
-			BorderTop(true).
-			BorderLeft(true).
-			BorderRight(true).
-			BorderBottom(true)
-
-	buttonStyle = lipgloss.NewStyle().
-			Foreground(lipgloss.Color("#FFF7DB")).
-			Background(lipgloss.Color("#888B7E")).
-			Padding(0, 3).
-			MarginTop(1)
-
-	activeButtonStyle = buttonStyle.Copy().
-				Foreground(lipgloss.Color("#FFF7DB")).
-				Background(lipgloss.Color("#F25D94")).
-				MarginRight(2).
-				Underline(true)
 
 	// List.
 
@@ -242,7 +209,6 @@ type model struct {
 }
 
 func initialModel() model {
-	// TODO: Get color support for borders and menus running
 	cfg := readConfig()
 	fmt.Printf("metrics: %v\n", cfg.Metrics)
 	metrics := []string{}
@@ -339,7 +305,7 @@ func initialModel() model {
 	}
 
 	var (
-		focusedStyle = lipgloss.NewStyle().Foreground(colorful.Hex(m.generalConfig.ActiveButtonColor))
+		focusedStyle = lipgloss.NewStyle().Foreground(lipgloss.Color(m.generalConfig.ActiveButtonColor))
 		cursorStyle  = focusedStyle.Copy()
 	)
 	var t textinput.Model
@@ -410,6 +376,26 @@ func (m model) View() string {
 }
 
 func menuView(m model) string {
+	var (
+		buttonStyle = lipgloss.NewStyle().
+				Foreground(lipgloss.Color("#FFF7DB")).
+				Background(lipgloss.Color(m.generalConfig.ButtonColor)).
+				Padding(0, 3).
+				MarginTop(1)
+		activeButtonStyle = buttonStyle.Copy().
+					Foreground(lipgloss.Color("#FFF7DB")).
+					Background(lipgloss.Color(m.generalConfig.ActiveButtonColor)).
+					MarginRight(2).
+					Underline(true)
+		dialogBoxStyle = lipgloss.NewStyle().
+				Border(lipgloss.RoundedBorder()).
+				BorderForeground(lipgloss.Color(m.generalConfig.BorderColor)).
+				Padding(1, 0).
+				BorderTop(true).
+				BorderLeft(true).
+				BorderRight(true).
+				BorderBottom(true)
+	)
 	// Initial menu view
 	var s string
 	// construct just like menu view
@@ -446,6 +432,29 @@ func chosenView(m model) string {
 }
 
 func calendarView(m model) string {
+
+	var (
+		tab = lipgloss.NewStyle().
+			Border(tabBorder, true).
+			BorderForeground(lipgloss.Color(m.generalConfig.BorderColor)).
+			Padding(0, 1)
+
+		activeTab = tab.Copy().Border(activeTabBorder, true)
+
+		tabGap = tab.Copy().
+			BorderTop(false).
+			BorderLeft(false).
+			BorderRight(false)
+
+		dialogBoxStyle = lipgloss.NewStyle().
+				Border(lipgloss.RoundedBorder()).
+				BorderForeground(lipgloss.Color(m.generalConfig.BorderColor)).
+				Padding(1, 0).
+				BorderTop(true).
+				BorderLeft(true).
+				BorderRight(true).
+				BorderBottom(true)
+	)
 	var s string
 	metricCands := []string{}
 	for i, choice := range m.metrics {
@@ -500,8 +509,8 @@ func calendarView(m model) string {
 
 func newEntryView(m model) string {
 	var (
-		focusedStyle  = lipgloss.NewStyle().Foreground(colorful.Hex(m.generalConfig.ActiveButtonColor))
-		blurredStyle  = lipgloss.NewStyle().Foreground(colorful.Hex(m.generalConfig.ButtonColor))
+		focusedStyle  = lipgloss.NewStyle().Foreground(lipgloss.Color(m.generalConfig.ActiveButtonColor))
+		blurredStyle  = lipgloss.NewStyle().Foreground(lipgloss.Color(m.generalConfig.ActiveButtonColor))
 		focusedButton = focusedStyle.Copy().Render("[ Submit ]")
 		blurredButton = fmt.Sprintf("[ %s ]", blurredStyle.Render("Submit"))
 		helpStyle     = blurredStyle.Copy()
@@ -643,7 +652,7 @@ func updateCalendar(m model, msg tea.Msg) (tea.Model, tea.Cmd) {
 func updateEntry(m model, msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	var (
-		focusedStyle = lipgloss.NewStyle().Foreground(colorful.Hex(m.generalConfig.ActiveButtonColor))
+		focusedStyle = lipgloss.NewStyle().Foreground(lipgloss.Color(m.generalConfig.ActiveButtonColor))
 		noStyle      = lipgloss.NewStyle()
 	)
 	switch msg := msg.(type) {
@@ -1015,6 +1024,19 @@ var rules map[string]string = map[string]string{
 
 // render grid as year view
 func renderGrid(colorGrid [][]string) {
+	var (
+		tab = lipgloss.NewStyle().
+			Border(tabBorder, true).
+			BorderForeground(highlight).
+			Padding(0, 1)
+
+		activeTab = tab.Copy().Border(activeTabBorder, true)
+
+		tabGap = tab.Copy().
+			BorderTop(false).
+			BorderLeft(false).
+			BorderRight(false)
+	)
 	doc := strings.Builder{}
 	physicalWidth, _, _ := term.GetSize(int(os.Stdout.Fd()))
 	{
@@ -1451,7 +1473,7 @@ func storeJSON(data EntryData) int {
 		log.Println(err)
 		return 1
 	}
-	_ = ioutil.WriteFile("test.json", jsonData, 0644)
+	_ = ioutil.WriteFile("data.json", jsonData, 0644)
 	return 0
 }
 

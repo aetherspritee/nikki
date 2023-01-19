@@ -1,36 +1,37 @@
 [general]
-    BorderColor = "#abb31b"
-    ActiveButtonColor = "#b42300"
-    ButtonColor = "#f333e4"
+    BorderColor = "#98971a"
+    ActiveButtonColor = "#b16286"
+    ButtonColor = "#928374"
+
 
 [[metrics]]
     name = "Got up"
-    color1 = "#354565"
-    color2 = "#445567"
+    color1 = "#83a598"
+    color2 = "#abb31b"
     rule = "time"
 
 [[metrics]]
    name = "Went to bed"
-   color1 = "#354565"
-   color2 = "#445567"
+    color1 = "#83a598"
+   color2 = "#abb31b"
    rule = "time"
 
 [[metrics]]
     name = "Mood"
-    color1 = "#282828"
-    color2 = "#395949"
+    color1 = "#83a598"
+    color2 = "#abb31b"
     rule = "int10"
 
 [[metrics]]
     name = "Pomos"
-    color1 = "#282828"
-    color2 = "#395949"
+    color1 = "#83a598"
+    color2 = "#abb31b"
     rule = "int"
 
 [[metrics]]
     name = "Drank water"
-    color1 = "#282828"
-    color2 = "#395949"
+    color1 = "#83a598"
+    color2 = "#abb31b"
     rule = "int"
 
 # [[metrics]]
