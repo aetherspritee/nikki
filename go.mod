@@ -1,4 +1,4 @@
-module test.go
+module nikki.go
 
 go 1.19
 

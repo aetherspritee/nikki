@@ -215,6 +215,9 @@ func initialModel() model {
 	for _, element := range cfg.Metrics {
 		metrics = append(metrics, element.Name)
 	}
+	// TODO: first check whether metrics have changed
+	// Handle: only removed metrics, only added metrics,
+	// added and removed metrics
 
 	data := loadJSON()
 	//update the decoded data based on changes in config!
@@ -226,13 +229,16 @@ func initialModel() model {
 	// element for new metrics
 	var newData []MetricData
 	newData2 := make([]MetricData, len(metrics))
+	// FIXME: if onlyAdded
 	if len(metrics)-len(data.Data) > 0 {
+		// if metrics were added
 		newDataR := data.Data
 		for dontCare := 0; dontCare < (len(metrics) - len(data.Data)); dontCare++ {
 			newDataR = append(newDataR, MetricData{})
 		}
 		newData = newDataR
 	} else {
+		// FIXME: if metrics were removed
 		// find names of old metrics
 		oldMetrics := make([]string, len(data.Metrics))
 		for ind, _ := range data.Metrics {
@@ -267,6 +273,8 @@ func initialModel() model {
 		}
 		newData = newDataR
 	}
+	// TODO: if metrics were added and removed
+	// how to do this tho
 	data.Metrics = updatedMetrics
 	for idx, ele := range newData {
 		foundCorrectIdx := false
