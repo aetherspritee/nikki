@@ -210,7 +210,7 @@ type model struct {
 
 func initialModel() model {
 	cfg := readConfig()
-	fmt.Printf("metrics: %v\n", cfg.Metrics)
+	//fmt.Printf("metrics: %v\n", cfg.Metrics)
 	metrics := []string{}
 	for _, element := range cfg.Metrics {
 		metrics = append(metrics, element.Name)
