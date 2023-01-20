@@ -1092,7 +1092,7 @@ func prerenderGrid(colorGrid [][]string) string {
 	for _, x := range colorGrid {
 		for _, y := range x {
 			// s := lipgloss.NewStyle().SetString(" ").Background(lipgloss.Color(y))
-			s := lipgloss.NewStyle().SetString("▄").Foreground(lipgloss.Color(y))
+			s := lipgloss.NewStyle().SetString("").Foreground(lipgloss.Color(y))
 			b.WriteString(s.String())
 			w := lipgloss.NewStyle().SetString(" ")
 			b.WriteString(w.String())
