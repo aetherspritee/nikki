@@ -488,13 +488,26 @@ func calendarView(m model) string {
 		mmax = "Maximum:  " + mmax
 		minMaxAvgString := lipgloss.JoinHorizontal(lipgloss.Center, mmin, mavg, mmax)
 		question := lipgloss.NewStyle().Width(70).Align(lipgloss.Center).Render(minMaxAvgString)
-		ui := lipgloss.JoinVertical(lipgloss.Center, question)
+		currStreak, LongestStreak := streakChecker(m.data, m.cursor2)
+		cStreak := "Current Streak:  " + strconv.Itoa(currStreak) + " || "
+		lStreak := "Longest Streak:  " + strconv.Itoa(LongestStreak)
+		streakString := lipgloss.JoinHorizontal(lipgloss.Center, cStreak, lStreak)
+		streak_render := lipgloss.NewStyle().Width(70).Align(lipgloss.Center).Render(streakString)
+		ui := lipgloss.JoinVertical(lipgloss.Center, question, streak_render)
 		dialog := lipgloss.Place(width, 9,
 			lipgloss.Center, lipgloss.Center,
 			dialogBoxStyle.Render(ui),
 			lipgloss.WithWhitespaceForeground(subtle),
 		)
 		s += dialog
+
+		// streakUI := lipgloss.JoinVertical(lipgloss.Center, streak_render)
+		// streakDialog := lipgloss.Place(width, 9,
+		// 	lipgloss.Center, lipgloss.Center,
+		// 	dialogBoxStyle.Render(streakUI),
+		// 	lipgloss.WithWhitespaceForeground(subtle),
+		// )
+		// s += streakDialog
 
 	} else {
 		// render a text box saying "no entries yet"
@@ -1342,11 +1355,19 @@ func calcRangeMap(data EntryData) map[string][]float64 {
 		}
 		// normalize to range {0,1}
 		var normalizedData []float64
-		var max float64
-		for _, findMax := range formattedData {
-			if float64(findMax) > max {
-				max = float64(findMax)
+		max := 1e-20
+		min := 1e20
+		for _, element := range formattedData {
+			if float64(element) > max {
+				max = float64(element)
 			}
+			if float64(element) < min {
+				min = float64(element)
+			}
+		}
+		max = max - min
+		for idx, element := range formattedData {
+			formattedData[idx] = int(float64(element) - min)
 		}
 		for _, element := range formattedData {
 			normalizedData = append(normalizedData, float64(element)/max)
@@ -1464,6 +1485,43 @@ func ruleChecker(input string, rule string) bool {
 	} else {
 		return false
 	}
+}
+
+// TODO: create a function a see the longest streak of continous inputs
+// also render them as under the calendar view
+func streakChecker(data EntryData, metric int) (int, int) {
+	streak := 1
+	longestStreak := 0
+	// streakOK := true
+	dates := data.Data[metric].Date
+	for idx, element := range dates {
+		formDate := element.Format("02.01.2006")
+		year, _ := strconv.Atoi(formDate[len(formDate)-4 : len(formDate)])
+		prevMonth, _ := (strconv.Atoi(formDate[len(formDate)-7 : len(formDate)-5]))
+		month := time.Month(prevMonth)
+		day, _ := strconv.Atoi(formDate[len(formDate)-10 : len(formDate)-8])
+		// TODO: use the time.AddDate() method to check whether previous or following date exists in list
+		date := time.Date(year, month, day, 0, 0, 0, 0, time.UTC)
+		nextDate := date.AddDate(0, 0, 1).Format("02.01.2006")
+		if len(dates) <= idx+1 {
+			// last element in the list
+
+		} else {
+			// next date must exist
+			nextDateInList := dates[idx+1].Format("02.01.2006")
+			if nextDateInList == nextDate {
+				// streak still ok
+				streak += 1
+			} else {
+				// streak broken
+				streak = 0
+			}
+		}
+		if streak > longestStreak {
+			longestStreak = streak
+		}
+	}
+	return streak, longestStreak
 }
 
 func newEntry() {
