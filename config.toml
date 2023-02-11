@@ -3,12 +3,11 @@
     ActiveButtonColor = "#b16286"
     ButtonColor = "#928374"
 
-
 [[metrics]]
-    name = "Got up"
-    color1 = "#83a598"
-    color2 = "#abb31b"
-    rule = "time"
+   name = "Got up"
+   color1 = "#83a598"
+   color2 = "#abb31b"
+   rule = "time"
 
 [[metrics]]
    name = "Went to bed"
@@ -33,9 +32,3 @@
     color1 = "#83a598"
     color2 = "#abb31b"
     rule = "int"
-
-# [[metrics]]
-#     name = "testlol"
-#     color1 = "#282828"
-#     color2 = "#395949"
-#     rule = "int"

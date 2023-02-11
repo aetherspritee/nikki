@@ -23,6 +23,10 @@ import (
 	"golang.org/x/term"
 )
 
+//////////////////////////////////////////
+// Welcome to 日記, a TUI habit tracker! //
+///////////////////////////// ////////////
+
 type Position float64
 
 func (p Position) value() float64 {
@@ -209,97 +213,83 @@ type model struct {
 }
 
 func initialModel() model {
+	data, metrics, updatedMetrics, newMetricNames := checkConfig()
+
+	// Check if config has changed
+	configChanged := checkForConfigChanges(newMetricNames, metrics)
+
+	if configChanged {
+		// Check if elements were deleted, delete corresponding entries if so
+		metricDeleted, deletedMetrics := checkForDeletedMetrics(metrics, newMetricNames)
+		if metricDeleted {
+			var newData []MetricData
+			newMetrics := []string{}
+
+			for _, currData := range data.Data {
+				// if metric is not in deletedMetrics, add data to new data
+				if !contains(deletedMetrics, currData.Name) {
+					newData = append(newData, currData)
+					newMetrics = append(newMetrics, currData.Name)
+				}
+			}
+			// fmt.Printf("newData: %v\n", newData)
+			data.Data = newData
+			metrics = newMetrics
+
+		}
+		// TODO: Check if elements were added, add new entries if so
+		metricAdded, addedMetrics := checkForAddedMetrics(metrics, newMetricNames)
+		if metricAdded {
+			newData := data.Data
+			for dontCare := 0; dontCare < len(addedMetrics); dontCare++ {
+				newData = append(newData, MetricData{})
+			}
+			if len(addedMetrics) > 0 {
+				counter := 0
+				for idx, _ := range newData {
+					if newData[idx].Name == "" {
+						newData[idx].Name = addedMetrics[counter]
+						counter += 1
+					}
+				}
+			}
+			// fmt.Printf("Added metric data: %v\n", newData)
+			data.Data = newData
+		}
+		// Check if elements were rearranged, properly order them
+		// TODO: use correct metrics
+		data.Metrics = updatedMetrics
+		metrics = newMetricNames
+		// FIXME: This does not work at all
+		newData := make([]MetricData, len(metrics))
+		for idx, ele := range data.Data {
+			foundCorrectIdx := false
+			for sIdx := 0; sIdx < len(metrics); sIdx++ {
+				if ele.Name == metrics[sIdx] {
+					newData[sIdx] = ele
+					newData[sIdx].Name = metrics[sIdx]
+					foundCorrectIdx = true
+					break
+					// fmt.Printf("newData2: %v\n", newData)
+				}
+			}
+			if foundCorrectIdx == false {
+				newData[idx] = MetricData{
+					Name:   metrics[idx],
+					Date:   []time.Time{},
+					Value:  []string{},
+					Color1: data.Metrics[idx][2],
+					Color2: data.Metrics[idx][3],
+				}
+			}
+			data.Data = newData
+			// fmt.Printf("The reformatted data: %v\n", newData2)
+		}
+	}
+
+	storeJSON(data)
+
 	cfg := readConfig()
-	//fmt.Printf("metrics: %v\n", cfg.Metrics)
-	metrics := []string{}
-	for _, element := range cfg.Metrics {
-		metrics = append(metrics, element.Name)
-	}
-	// TODO: first check whether metrics have changed
-	// Handle: only removed metrics, only added metrics,
-	// added and removed metrics
-
-	data := loadJSON()
-	//update the decoded data based on changes in config!
-	updatedMetrics := make(map[int][]string, len(cfg.Metrics))
-	for index, element := range cfg.Metrics {
-		updatedMetrics[index] = []string{element.Name, element.Rule, element.Color1, element.Color2}
-	}
-	// rearrange data to fit metrics and add new
-	// element for new metrics
-	var newData []MetricData
-	newData2 := make([]MetricData, len(metrics))
-	// FIXME: if onlyAdded
-	if len(metrics)-len(data.Data) > 0 {
-		// if metrics were added
-		newDataR := data.Data
-		for dontCare := 0; dontCare < (len(metrics) - len(data.Data)); dontCare++ {
-			newDataR = append(newDataR, MetricData{})
-		}
-		newData = newDataR
-	} else {
-		// FIXME: if metrics were removed
-		// find names of old metrics
-		oldMetrics := make([]string, len(data.Metrics))
-		for ind, _ := range data.Metrics {
-			oldMetrics[ind] = data.Metrics[ind][0]
-		}
-		missing := []int{}
-		// check where one misses
-		for idx, element := range oldMetrics {
-			miss := false
-			for _, element2 := range metrics {
-				if element == element2 {
-					miss = true
-				}
-			}
-			if miss == false {
-				missing = append(missing, idx)
-			}
-		}
-		// remove corresponding entry
-		// TODO: Handle deletion+addition of metrics
-		newDataR := make([]MetricData, len(metrics))
-		for idx, element := range data.Data {
-			isMissing := false
-			for _, element2 := range missing {
-				if idx == element2 {
-					isMissing = true
-				}
-			}
-			if isMissing == false {
-				newDataR = append(newDataR, element)
-			}
-		}
-		newData = newDataR
-	}
-	// TODO: if metrics were added and removed
-	// how to do this tho
-	data.Metrics = updatedMetrics
-	for idx, ele := range newData {
-		foundCorrectIdx := false
-		// check if metric name in data is in same order as metrics in Metrics field
-		// such that change of order doesnt break everything
-		for sIdx := 0; sIdx < len(metrics); sIdx++ {
-			if newData[idx].Name == metrics[sIdx] {
-				newData2[sIdx] = ele
-				newData2[sIdx].Name = metrics[sIdx]
-				foundCorrectIdx = true
-			}
-		}
-		if foundCorrectIdx == false {
-			newData2[idx] = MetricData{
-				Name:   metrics[idx],
-				Date:   []time.Time{},
-				Value:  []string{},
-				Color1: data.Metrics[idx][2],
-				Color2: data.Metrics[idx][3],
-			}
-		}
-
-	}
-	data.Data = newData2
-	// fmt.Printf("The reformatted data: %v\n", newData2)
 
 	m := model{
 		metrics:       metrics,
@@ -334,6 +324,89 @@ func initialModel() model {
 	}
 
 	return m
+}
+
+func contains(s []string, e string) bool {
+	for _, a := range s {
+		if a == e {
+			return true
+		}
+	}
+	return false
+}
+
+func checkConfig() (EntryData, []string, map[int][]string, []string) {
+	cfg := readConfig()
+	//fmt.Printf("metrics: %v\n", cfg.Metrics)
+	metrics := []string{}
+	data := loadJSON()
+	for _, element := range data.Data {
+		metrics = append(metrics, element.Name)
+	}
+	// TODO: first check whether metrics have changed
+	// Handle: only removed metrics, only added metrics,
+	// added and removed metrics
+
+	//update the decoded data based on changes in config!
+	updatedMetrics := make(map[int][]string, len(cfg.Metrics))
+	updatedMetricsNames := []string{}
+	newMetricNames := []string{}
+	for index, element := range cfg.Metrics {
+		updatedMetrics[index] = []string{element.Name, element.Rule, element.Color1, element.Color2}
+		updatedMetricsNames = append(updatedMetricsNames, element.Name)
+		if !contains(metrics, element.Name) {
+			newMetricNames = append(newMetricNames, element.Name)
+		}
+	}
+	for _, element := range metrics {
+		if !contains(updatedMetricsNames, element) {
+			newMetricNames = append(newMetricNames, element)
+		}
+	}
+
+	return data, metrics, updatedMetrics, updatedMetricsNames
+}
+
+func checkForConfigChanges(updatedMetrics []string, metrics []string) bool {
+	if len(updatedMetrics) != len(metrics) {
+		return true
+	}
+	for idx, _ := range updatedMetrics {
+		if updatedMetrics[idx] != metrics[idx] {
+			return true
+		}
+	}
+	return false
+}
+
+func checkForDeletedMetrics(metrics []string, newMetrics []string) (bool, []string) {
+	change := false
+	deletedMetrics := []string{}
+	for _, metric := range metrics {
+		if !contains(newMetrics, metric) {
+			change = true
+			deletedMetrics = append(deletedMetrics, metric)
+		}
+	}
+	return change, deletedMetrics
+}
+
+func checkForAddedMetrics(metrics []string, newMetrics []string) (bool, []string) {
+	change := false
+	addedMetrics := []string{}
+	for _, metric := range newMetrics {
+		found := false
+		for _, metric2 := range metrics {
+			if metric2 == metric {
+				found = true
+			}
+		}
+		if !found {
+			change = true
+			addedMetrics = append(addedMetrics, metric)
+		}
+	}
+	return change, addedMetrics
 }
 
 func (m model) Init() tea.Cmd {
@@ -1487,8 +1560,6 @@ func ruleChecker(input string, rule string) bool {
 	}
 }
 
-// TODO: create a function a see the longest streak of continous inputs
-// also render them as under the calendar view
 func streakChecker(data EntryData, metric int) (int, int) {
 	streak := 1
 	longestStreak := 0
@@ -1500,7 +1571,7 @@ func streakChecker(data EntryData, metric int) (int, int) {
 		prevMonth, _ := (strconv.Atoi(formDate[len(formDate)-7 : len(formDate)-5]))
 		month := time.Month(prevMonth)
 		day, _ := strconv.Atoi(formDate[len(formDate)-10 : len(formDate)-8])
-		// TODO: use the time.AddDate() method to check whether previous or following date exists in list
+		// use the time.AddDate() method to check whether previous or following date exists in list
 		date := time.Date(year, month, day, 0, 0, 0, 0, time.UTC)
 		nextDate := date.AddDate(0, 0, 1).Format("02.01.2006")
 		if len(dates) <= idx+1 {
@@ -1539,6 +1610,7 @@ func storeJSON(data EntryData) int {
 		log.Println(err)
 		return 1
 	}
+	fmt.Println("Saving data")
 	_ = ioutil.WriteFile("data.json", jsonData, 0644)
 	return 0
 }
