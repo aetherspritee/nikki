@@ -1,4 +1,4 @@
-package main
+package src
 
 var rules map[string]string = map[string]string{
 	"int10": `^[0-9]$`,

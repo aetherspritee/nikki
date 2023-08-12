@@ -1,4 +1,4 @@
-package main
+package src
 
 import (
 	toml "github.com/naoina/toml"

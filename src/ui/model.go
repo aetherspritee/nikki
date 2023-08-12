@@ -1,10 +1,10 @@
 package ui
 
 import (
+	"github.com/aetherspritee/nikki/src"
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	"src/nikki"
 	"time"
 )
 

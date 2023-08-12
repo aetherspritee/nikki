@@ -1,8 +1,9 @@
-package main
+package src
 
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/aetherspritee/nikki/src/ui"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"log"
