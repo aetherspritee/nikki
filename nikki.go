@@ -8,15 +8,17 @@ import (
 )
 
 // TODOS
-// TODO: resolve cyclic import, split model and ui sensibly
+// TODO: break up ui
+// TODO: calendar colors are off for some metrics
 // TODO: automatic resizing of ui
+// TODO: fully support monthly view
 // TODO: build and refactor rules
 // TODO: better data storage solution
 // TODO: add mouse support show info for single day (idek if thats possible)
 
-//////////////////////////////////////////
-// Welcome to 日記, a TUI habit tracker! //
-///////////////////////////// ////////////
+// ############################################
+// ##  Welcome to 日記, a TUI habit tracker! ##
+// ############################################
 
 func main() {
 

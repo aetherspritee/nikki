@@ -1,6 +1,7 @@
 package src
 
 import (
+	"github.com/lucasb-eyer/go-colorful"
 	"regexp"
 	"strconv"
 	"time"
@@ -195,4 +196,78 @@ func streakChecker(data EntryData, metric int) (int, int) {
 		}
 	}
 	return streak, longestStreak
+}
+
+func mapDataToGrid(data EntryData, grid [][]int, toShow time.Time, metric int, colorMap map[string][]string) [][]string {
+	// create map for date to number
+	dateMap := map[int]string{}
+	year := toShow.Format("02-01-2006")
+	year = year[len(year)-4 : len(year)]
+	year_as_int, err := strconv.Atoi(year)
+	if err != nil {
+		panic(err)
+	}
+	leapCheck := "29.02." + year
+	yearLength := 366
+	_, err2 := time.Parse("02.01.2006", leapCheck)
+	if err2 != nil {
+		yearLength = 365
+	}
+	start := time.Date(year_as_int, 1, 1, 0, 0, 0, 0, time.UTC)
+	for i := 1; i <= yearLength; i++ {
+		dateMap[i] = start.Format("02.01.2006")
+		start = start.AddDate(0, 0, 1)
+	}
+
+	// use date map to match
+	dateMask := map[int]string{}
+	for _, element := range data.Data[metric].Date {
+		element := element.Format("02.01.2006")
+		for index, element2 := range dateMap {
+			if element == element2 {
+				dateMask[index] = element
+			} else if dateMask[index] == "" {
+				dateMask[index] = "-"
+			}
+		}
+	}
+	// loop over grid in overcomplicated way to make sure you understand
+	// how that shit works :)
+	coloredGrid := make([][]string, 7)
+	counter := 1
+	counter2 := 0
+	for i := 0; i < len(grid[0]); i++ {
+		for j := 0; j < 7; j++ {
+			if grid[j][i] != 0 {
+				if dateMask[counter] != "-" {
+					grid[j][i] = 2
+					coloredGrid[j] = append(coloredGrid[j], colorMap[data.Metrics[metric][0]][counter2])
+					counter2 += 1
+				} else {
+					coloredGrid[j] = append(coloredGrid[j], "#D9DCCF")
+				}
+				counter += 1
+			} else {
+				coloredGrid[j] = append(coloredGrid[j], "#383838")
+			}
+		}
+	}
+
+	return coloredGrid
+
+}
+
+func getColorMap(rangeMap map[string][]float64, data EntryData, metric int) map[string][]string {
+	colorGrd := map[string][]string{}
+	for index, _ := range rangeMap {
+		x0y0, _ := colorful.Hex(data.Metrics[metric][2])
+		x1y0, _ := colorful.Hex(data.Metrics[metric][3])
+
+		x0 := make([]string, len(rangeMap[index]))
+		for i := range x0 {
+			x0[i] = x0y0.BlendLuv(x1y0, rangeMap[index][i]).Hex()
+		}
+		colorGrd[index] = x0
+	}
+	return colorGrd
 }
