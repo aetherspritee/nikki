@@ -1,6 +1,7 @@
 package src
 
 import (
+	"github.com/charmbracelet/bubbles/cursor"
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
@@ -16,7 +17,7 @@ type model struct {
 	data          EntryData // data lül
 	quitting      bool
 	inputs        []textinput.Model
-	cursorMode    textinput.CursorMode
+	cursorMode    cursor.CursorMode
 	focusIndex    int
 	wrongInput    bool
 	wrongIndex    int
@@ -33,68 +34,17 @@ func InitialModel() model {
 		// Check if elements were deleted, delete corresponding entries if so
 		metricDeleted, deletedMetrics := checkForDeletedMetrics(metrics, newMetricNames)
 		if metricDeleted {
-			var newData []MetricData
-			newMetrics := []string{}
-
-			for _, currData := range data.Data {
-				// if metric is not in deletedMetrics, add data to new data
-				if !contains(deletedMetrics, currData.Name) {
-					newData = append(newData, currData)
-					newMetrics = append(newMetrics, currData.Name)
-				}
-			}
-			// fmt.Printf("newData: %v\n", newData)
-			data.Data = newData
-			metrics = newMetrics
-
+			data.Data, metrics = deleteMetrics(data.Data, deletedMetrics)
 		}
 		// Check if elements were added, add new entries if so
 		metricAdded, addedMetrics := checkForAddedMetrics(metrics, newMetricNames)
 		if metricAdded {
-			newData := data.Data
-			for dontCare := 0; dontCare < len(addedMetrics); dontCare++ {
-				newData = append(newData, MetricData{})
-			}
-			if len(addedMetrics) > 0 {
-				counter := 0
-				for idx, _ := range newData {
-					if newData[idx].Name == "" {
-						newData[idx].Name = addedMetrics[counter]
-						counter += 1
-					}
-				}
-			}
-			// fmt.Printf("Added metric data: %v\n", newData)
-			data.Data = newData
+			data.Data = addMetrics(addedMetrics, data.Data)
 		}
 		// Check if elements were rearranged, properly order them
 		// use correct metrics
 		data.Metrics = updatedMetrics
-		metrics = newMetricNames
-		newData := make([]MetricData, len(metrics))
-		for idx, ele := range data.Data {
-			foundCorrectIdx := false
-			for sIdx := 0; sIdx < len(metrics); sIdx++ {
-				if ele.Name == metrics[sIdx] {
-					newData[sIdx] = ele
-					newData[sIdx].Name = metrics[sIdx]
-					foundCorrectIdx = true
-					break
-					// fmt.Printf("newData2: %v\n", newData)
-				}
-			}
-			if foundCorrectIdx == false {
-				newData[idx] = MetricData{
-					Name:   metrics[idx],
-					Date:   []time.Time{},
-					Value:  []string{},
-					Color1: data.Metrics[idx][2],
-					Color2: data.Metrics[idx][3],
-				}
-			}
-			data.Data = newData
-			// fmt.Printf("The reformatted data: %v\n", newData2)
-		}
+		data = updateMetrics(data, metrics, newMetricNames)
 	}
 
 	storeJSON(data)
@@ -134,6 +84,66 @@ func InitialModel() model {
 	}
 
 	return m
+}
+
+func addMetrics(addedMetrics []string, data []MetricData) []MetricData {
+	newData := data
+	for dontCare := 0; dontCare < len(addedMetrics); dontCare++ {
+		newData = append(newData, MetricData{})
+	}
+	if len(addedMetrics) > 0 {
+		counter := 0
+		for idx, _ := range newData {
+			if newData[idx].Name == "" {
+				newData[idx].Name = addedMetrics[counter]
+				counter += 1
+			}
+		}
+	}
+	return newData
+}
+
+func updateMetrics(data EntryData, metrics []string, newMetricNames []string) EntryData {
+	metrics = newMetricNames
+	newData := make([]MetricData, len(metrics))
+	for idx, ele := range data.Data {
+		foundCorrectIdx := false
+		for sIdx := 0; sIdx < len(metrics); sIdx++ {
+			if ele.Name == metrics[sIdx] {
+				newData[sIdx] = ele
+				newData[sIdx].Name = metrics[sIdx]
+				foundCorrectIdx = true
+				break
+				// fmt.Printf("newData2: %v\n", newData)
+			}
+		}
+		if foundCorrectIdx == false {
+			newData[idx] = MetricData{
+				Name:   metrics[idx],
+				Date:   []time.Time{},
+				Value:  []string{},
+				Color1: data.Metrics[idx][2],
+				Color2: data.Metrics[idx][3],
+			}
+		}
+		data.Data = newData
+	}
+	return data
+}
+
+func deleteMetrics(data []MetricData, deletedMetrics []string) ([]MetricData, []string) {
+	var newData []MetricData
+	newMetrics := []string{}
+
+	for _, currData := range data {
+		// if metric is not in deletedMetrics, add data to new data
+		if !contains(deletedMetrics, currData.Name) {
+			newData = append(newData, currData)
+			newMetrics = append(newMetrics, currData.Name)
+		}
+	}
+	// fmt.Printf("newData: %v\n", newData)
+	return newData, newMetrics
 }
 
 func (m model) Init() tea.Cmd {
