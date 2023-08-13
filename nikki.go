@@ -8,9 +8,8 @@ import (
 )
 
 // TODOS
-// TODO: break up ui
 // TODO: calendar colors are off for some metrics
-// TODO: automatic resizing of ui
+// TODO: last open restructuring todo
 // TODO: fully support monthly view
 // TODO: build and refactor rules
 // TODO: better data storage solution
@@ -21,7 +20,6 @@ import (
 // ############################################
 
 func main() {
-
 	// encodeJson()
 	// decodeJson()
 	src.ReadConfig()

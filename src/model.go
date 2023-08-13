@@ -422,7 +422,7 @@ func updateMenu(m model, msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func updateChosen(m model, msg tea.Msg) (tea.Model, tea.Cmd) {
-
+	width, columnWidth = updateTermSize()
 	switch m.cursor1 {
 	case 0:
 		m, cmd := updateCalendar(m, msg)
@@ -432,6 +432,11 @@ func updateChosen(m model, msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, cmd
 	}
 	return m, nil
+}
+
+func updateTermSize() (int, int) {
+	var width, columnWidth, _ = term.GetSize(int(os.Stdin.Fd()))
+	return width, columnWidth
 }
 
 func updateCalendar(m model, msg tea.Msg) (tea.Model, tea.Cmd) {

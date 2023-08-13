@@ -3,19 +3,13 @@ package src
 import (
 	"github.com/charmbracelet/lipgloss"
 	"github.com/muesli/reflow/ansi"
+	"golang.org/x/term"
 	"math"
+	"os"
 	"strings"
 )
 
-const (
-	// In real life situations we'd adjust the document to fit the width we've
-	// detected. In the case of this example we're hardcoding the width, and
-	// later using the detected width only to truncate in order to avoid jaggy
-	// wrapping.
-	width = 96
-
-	columnWidth = 30
-)
+var width, columnWidth, _ = term.GetSize(int(os.Stdin.Fd()))
 
 type Position float64
 
