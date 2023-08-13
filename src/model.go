@@ -41,22 +41,8 @@ func InitialModel() model {
 	// Check if config has changed
 	configChanged := checkForConfigChanges(newMetricNames, metrics)
 
-	// TODO: break up into own method under metric handling
 	if configChanged {
-		// Check if elements were deleted, delete corresponding entries if so
-		metricDeleted, deletedMetrics := checkForDeletedMetrics(metrics, newMetricNames)
-		if metricDeleted {
-			data.Data, metrics = deleteMetrics(data.Data, deletedMetrics)
-		}
-		// Check if elements were added, add new entries if so
-		metricAdded, addedMetrics := checkForAddedMetrics(metrics, newMetricNames)
-		if metricAdded {
-			data.Data = addMetrics(addedMetrics, data.Data)
-		}
-		// Check if elements were rearranged, properly order them
-		// use correct metrics
-		data.Metrics = updatedMetrics
-		data = updateMetrics(data, metrics, newMetricNames)
+		data = checkMetrics(metrics, newMetricNames, updatedMetrics, data)
 	}
 
 	storeJSON(data)
@@ -135,7 +121,25 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 // ##################################
 // ## METRIC MAINTENANCE & UPDATES ##
 // ##################################
-// TODO: create a method here that combines all metric checks and updates
+
+func checkMetrics(metrics []string, newMetricNames []string, updatedMetrics map[int][]string, data EntryData) EntryData {
+	// Check if elements were deleted, delete corresponding entries if so
+	metricDeleted, deletedMetrics := checkForDeletedMetrics(metrics, newMetricNames)
+	if metricDeleted {
+		data.Data, metrics = deleteMetrics(data.Data, deletedMetrics)
+	}
+	// Check if elements were added, add new entries if so
+	metricAdded, addedMetrics := checkForAddedMetrics(metrics, newMetricNames)
+	if metricAdded {
+		data.Data = addMetrics(addedMetrics, data.Data)
+	}
+	// Check if elements were rearranged, properly order them
+	// use correct metrics
+	data.Metrics = updatedMetrics
+	data = updateMetrics(data, metrics, newMetricNames)
+
+	return data
+}
 
 func addMetrics(addedMetrics []string, data []MetricData) []MetricData {
 	newData := data
