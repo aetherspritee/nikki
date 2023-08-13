@@ -3,13 +3,12 @@ package main
 import (
 	"fmt"
 	"github.com/aetherspritee/nikki/src"
-	"github.com/aetherspritee/nikki/src/ui"
 	tea "github.com/charmbracelet/bubbletea"
 	"os"
 )
 
 // TODOS
-// TODO: refactor code to be maintanable
+// TODO: resolve cyclic import, split model and ui sensibly
 // TODO: automatic resizing of ui
 // TODO: build and refactor rules
 // TODO: better data storage solution
@@ -23,9 +22,9 @@ func main() {
 
 	// encodeJson()
 	// decodeJson()
-	readConfig()
+	src.ReadConfig()
 
-	p := tea.NewProgram(initialModel())
+	p := tea.NewProgram(src.InitialModel())
 	if _, err := p.Run(); err != nil {
 		fmt.Printf("Alas, there's been an error: %v", err)
 		os.Exit(1)

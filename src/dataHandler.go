@@ -3,13 +3,16 @@ package src
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/aetherspritee/nikki/src/ui"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"log"
 	"os"
 	"time"
 )
+
+// ##################################
+// ### DATA STORAGE FUNCTIONALITY ###
+// ##################################
 
 type MetricData struct {
 	Name   string
@@ -28,10 +31,6 @@ type TestData struct {
 	Date  int
 	Value string
 }
-
-// ##################################
-// ### DATA STORAGE FUNCTIONALITY ###
-// ##################################
 
 func decodeJson() {
 

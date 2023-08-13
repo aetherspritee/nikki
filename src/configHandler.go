@@ -21,7 +21,7 @@ type Config struct {
 	}
 }
 
-func readConfig() Config {
+func ReadConfig() Config {
 	var cfg Config
 	config, err := os.Open("config.toml")
 	if err != nil {
@@ -36,7 +36,7 @@ func readConfig() Config {
 }
 
 func checkConfig() (EntryData, []string, map[int][]string, []string) {
-	cfg := readConfig()
+	cfg := ReadConfig()
 	//fmt.Printf("metrics: %v\n", cfg.Metrics)
 	metrics := []string{}
 	data := loadJSON()

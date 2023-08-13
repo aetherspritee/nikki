@@ -1,7 +1,6 @@
-package ui
+package src
 
 import (
-	"github.com/aetherspritee/nikki/src"
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
@@ -24,7 +23,7 @@ type model struct {
 	generalConfig General
 }
 
-func initialModel() model {
+func InitialModel() model {
 	data, metrics, updatedMetrics, newMetricNames := checkConfig()
 
 	// Check if config has changed
@@ -100,7 +99,7 @@ func initialModel() model {
 
 	storeJSON(data)
 
-	cfg := readConfig()
+	cfg := ReadConfig()
 
 	m := model{
 		metrics:       metrics,
