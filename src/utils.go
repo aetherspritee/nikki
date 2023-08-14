@@ -2,7 +2,6 @@ package src
 
 import (
 	"github.com/lucasb-eyer/go-colorful"
-	"regexp"
 	"strconv"
 	"time"
 )
@@ -21,55 +20,6 @@ func max(a, b int) int {
 		return a
 	}
 	return b
-}
-
-func reformatData(data string, MetricInfo string) int {
-	if MetricInfo == "int10" {
-		formattedData, err := strconv.Atoi(data)
-		if err != nil {
-			panic(err)
-		}
-		return formattedData
-	} else if MetricInfo == "int" {
-		formattedData, err := strconv.Atoi(data)
-
-		if err != nil {
-			panic(err)
-		}
-		return formattedData
-	} else if MetricInfo == "time" {
-		data = data[0:2] + data[3:5]
-		formattedData, err := strconv.Atoi(data)
-
-		if err != nil {
-			panic(err)
-		}
-
-		return formattedData
-	} else {
-		panic("YOOOOOOOOOOOOOOOOO")
-	}
-}
-
-func formatData(data int, MetricInfo string) string {
-	if MetricInfo == "int10" {
-		formattedData := strconv.Itoa(data)
-		return formattedData
-	} else if MetricInfo == "int" {
-		formattedData := strconv.Itoa(data)
-		return formattedData
-	} else if MetricInfo == "time" {
-		formattedData := strconv.Itoa(data)
-		var formattedTime string
-		if len(formattedData) < 4 {
-			formattedTime = "0" + formattedData[0:1] + ":" + formattedData[1:3]
-		} else {
-			formattedTime = formattedData[0:2] + ":" + formattedData[2:4]
-		}
-		return formattedTime
-	} else {
-		panic("eroooooooooooo")
-	}
 }
 
 func calcRangeMap(data EntryData) map[string][]float64 {
@@ -135,32 +85,6 @@ func getMinMaxAvg(data EntryData, metric int) (string, string, string) {
 	avgString := formatData(avg, rule)
 
 	return minString, maxString, avgString
-}
-
-func ruleChecker(input string, rule string) bool {
-	// fmt.Printf("input: %v, rule: %v\n", input, rule)
-	val, ok := rules[rule]
-	if ok {
-		// match regex
-		if rule == "int10" {
-			i, err := strconv.Atoi(input)
-			if err != nil {
-				// wtf are you doing
-				return false
-			}
-			input = strconv.Itoa(i - 1)
-		}
-		var validInput = regexp.MustCompile(val)
-		if validInput.MatchString(input) {
-			// youre good to go
-			return true
-		} else {
-			// aw hell naw
-			return false
-		}
-	} else {
-		return false
-	}
 }
 
 func streakChecker(data EntryData, metric int) (int, int) {
@@ -262,12 +186,25 @@ func getColorMap(rangeMap map[string][]float64, data EntryData, metric int) map[
 	for index, _ := range rangeMap {
 		x0y0, _ := colorful.Hex(data.Metrics[metric][2])
 		x1y0, _ := colorful.Hex(data.Metrics[metric][3])
-
 		x0 := make([]string, len(rangeMap[index]))
 		for i := range x0 {
 			x0[i] = x0y0.BlendLuv(x1y0, rangeMap[index][i]).Hex()
 		}
+		// if all values are equal x0 will be #000000
+		if equalValues(x0) {
+			for i := 0; i < len(x0); i++ {
+				x0[i] = x0y0.Hex()
+			}
+		}
 		colorGrd[index] = x0
 	}
 	return colorGrd
+}
+func equalValues(a []string) bool {
+	for i := 1; i < len(a); i++ {
+		if a[i] != a[0] {
+			return false
+		}
+	}
+	return true
 }
